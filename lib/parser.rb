@@ -6,11 +6,13 @@ class Parser
     @blob = blob
   end
 
+  def parse_array
+    extract_inner_content(blob, '[', ']')
+  end
+
   def parse_struct
-    inner_content = /^\s*\{(.*?)\}\s*$/mx
-    match = blob.match(inner_content)
-    raise "Invalid data structure syntax" unless match
-    extract_key_values(match[1])
+    content = extract_inner_content(blob, '{', '}')
+    extract_key_values(content)
   end
 
   private
@@ -43,6 +45,34 @@ class Parser
       end
     end
     struct
+  end
+
+  def extract_inner_content(text, left_token, right_token)
+    structs = []
+    token_index = nil
+    tokens = 0
+
+    text.each_char.with_index do |char, i|
+      case char
+      when left_token
+        token_index = i unless token_index
+        tokens += 1
+      when right_token
+        tokens -= 1
+        if tokens < 0
+          raise "Unbalanced token #{right_token}"
+        elsif tokens == 0
+          structs << text[token_index + 1..i - 1]
+          token_index = nil
+        end
+      end
+    end
+
+    if tokens != 0
+      raise "Unbalanced tokens #{left_token} #{right_token}"
+    end
+
+    structs.first
   end
 
 end

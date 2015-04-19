@@ -15,13 +15,35 @@ EOF
 
   subject { Parser.new(blob) }
 
+  describe "#parse_array" do
+
+    context "when array doesn't open" do
+      let(:blob) { "{date: 2014-01-01, a: 5, b:1}]" }
+
+      it "raises unbalanced ] token" do
+        expect{subject.parse_array}.to raise_error("Unbalanced token ]")
+      end
+
+    end
+
+    context "when array doesn't close" do
+      let(:blob) { "[{date: 2014-01-01, a: 5, b:1}" }
+
+      it "raises unbalanced [] tokens" do
+        expect{subject.parse_array}.to raise_error("Unbalanced tokens [ ]")
+      end
+
+    end
+
+  end
+
   describe "#parse_struct" do
 
     context "when struct synxtax is invalid" do
       let(:blob) { "{date: 2014-01-01, a: 5, b:1" }
 
       it "raises a struct syntax error" do
-        expect{subject.parse_struct}.to raise_error("Invalid data structure syntax")
+        expect{subject.parse_struct}.to raise_error("Unbalanced tokens { }")
       end
 
     end
