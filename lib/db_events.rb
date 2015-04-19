@@ -17,4 +17,18 @@ class DbEvents
     end.values
   end
 
+  def merge_by!(key)
+    @events = merge_by(key)
+  end
+
+  def to_s
+    out = "[\n"
+    events.each do |event|
+      out << " {"
+      out << event.map{|k,v| "#{k}: #{v}"}.join(', ')
+      out << "}\n"
+    end
+    out << "]\n"
+  end
+
 end

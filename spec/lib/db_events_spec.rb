@@ -61,4 +61,26 @@ RSpec.describe DbEvents do
 
   end
 
+  describe "#to_s" do
+    let(:events) do
+      [
+        {'date' => '2014-01-01', 'a' => '5', 'b' => '1' },
+        {'date' => '2014-10-01', 'a' => '8'}
+      ]
+    end
+
+    it "formats the event into a readable string" do
+      expect(subject.to_s).to eq(
+<<EOF
+[
+ {date: 2014-01-01, a: 5, b: 1}
+ {date: 2014-10-01, a: 8}
+]
+EOF
+      )
+    end
+
+  end
+
+
 end
