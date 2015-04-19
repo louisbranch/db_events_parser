@@ -8,7 +8,7 @@ class Parser
 
   def parse_array
     result = extract_inner_content(blob, '[', ']')
-    result.map { |s| Parser.new(s).parse_struct }.flatten
+    result.flat_map { |s| Parser.new(s).parse_struct }
   end
 
   def parse_struct
