@@ -7,12 +7,13 @@ class Parser
   end
 
   def parse_array
-    extract_inner_content(blob, '[', ']')
+    result = extract_inner_content(blob, '[', ']')
+    result.map { |s| Parser.new(s).parse_struct }.flatten
   end
 
   def parse_struct
-    content = extract_inner_content(blob, '{', '}')
-    extract_key_values(content)
+    structs = extract_inner_content(blob, '{', '}')
+    structs.map {|s| extract_key_values(s) }
   end
 
   private
@@ -48,7 +49,7 @@ class Parser
   end
 
   def extract_inner_content(text, left_token, right_token)
-    structs = []
+    content = []
     token_index = nil
     tokens = 0
 
@@ -62,7 +63,7 @@ class Parser
         if tokens < 0
           raise "Unbalanced token #{right_token}"
         elsif tokens == 0
-          structs << text[token_index + 1..i - 1]
+          content << text[token_index + 1..i - 1]
           token_index = nil
         end
       end
@@ -72,7 +73,7 @@ class Parser
       raise "Unbalanced tokens #{left_token} #{right_token}"
     end
 
-    structs.first
+    content
   end
 
 end

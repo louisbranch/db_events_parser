@@ -2,8 +2,13 @@ require 'parser'
 
 RSpec.describe Parser do
 
-  let(:blob) do
-    blob = <<EOF
+  subject { Parser.new(blob) }
+
+  describe "#parse_array" do
+
+    context "when array syntax is valid" do
+      let(:blob) do
+        blob = <<EOF
 [
  {date: 2014-01-01, a: 5, b:1},
  {date: 2014-01-01, xyz: 11},
@@ -11,11 +16,37 @@ RSpec.describe Parser do
  {date: 2014-10-10, v: 4, q: 1, strpm: -99}
 ]
 EOF
-  end
+      end
+      it "splits all structs into key/value pairs" do
+        expect(subject.parse_array).to eq([
+          {'date' => '2014-01-01', 'a' => '5', 'b' => '1' },
+          {'date' => '2014-01-01', 'xyz' => '11'},
+          {'date' => '2014-10-10', 'qbz' => '5'},
+          {'date' => '2014-10-10', 'v' => '4', 'q' => '1', 'strpm' => '-99'},
+        ])
+      end
+    end
 
-  subject { Parser.new(blob) }
-
-  describe "#parse_array" do
+    context "when comma separating structs is missing" do
+      let(:blob) do
+        blob = <<EOF
+[
+ {date: 2014-01-01, a: 5, b:1},
+ {date: 2014-01-01, xyz: 11}
+ {date: 2014-10-10, qbz: 5}
+ {date: 2014-10-10, v: 4, q: 1, strpm: -99}
+]
+EOF
+      end
+      it "splits all structs into key/value pairs" do
+        expect(subject.parse_array).to eq([
+          {'date' => '2014-01-01', 'a' => '5', 'b' => '1' },
+          {'date' => '2014-01-01', 'xyz' => '11'},
+          {'date' => '2014-10-10', 'qbz' => '5'},
+          {'date' => '2014-10-10', 'v' => '4', 'q' => '1', 'strpm' => '-99'},
+        ])
+      end
+    end
 
     context "when array doesn't open" do
       let(:blob) { "{date: 2014-01-01, a: 5, b:1}]" }
@@ -38,6 +69,19 @@ EOF
   end
 
   describe "#parse_struct" do
+
+    context "when syntax is valid" do
+      let(:blob) { "{date: 2014-01-01, a: 5, b:1}" }
+
+      it "splits key/value pairs" do
+        expect(subject.parse_struct.first).to eq({
+          'date' => '2014-01-01',
+          'a' => '5',
+          'b' => '1'
+        })
+      end
+
+    end
 
     context "when struct synxtax is invalid" do
       let(:blob) { "{date: 2014-01-01, a: 5, b:1" }
@@ -62,19 +106,6 @@ EOF
       it "raises a colon syntax error" do
         expect{subject.parse_struct}.to raise_error("Unexpected ',' near '..., a: , b:1...'")
       end
-    end
-
-    context "when syntax is valid" do
-      let(:blob) { "{date: 2014-01-01, a: 5, b:1}" }
-
-      it "splits key/value pairs" do
-        expect(subject.parse_struct).to eq({
-          'date' => '2014-01-01',
-          'a' => '5',
-          'b' => '1'
-        })
-      end
-
     end
 
   end
